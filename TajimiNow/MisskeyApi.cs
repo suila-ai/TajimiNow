@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,12 +24,19 @@ namespace TajimiNow
 
         public static async Task Post(string text)
         {
-            await api.ApiAsync<Dictionary<string, Note>>("notes/create", new
+            try
             {
-                text,
-                visibility = Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY") ?? "followers",
+                await api.ApiAsync<Dictionary<string, Note>>("notes/create", new
+                {
+                    text,
+                    visibility = Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY") ?? "followers",
 
-            });
+                });
+            }
+            catch
+            {
+                throw;
+            }
         }
     }
 }

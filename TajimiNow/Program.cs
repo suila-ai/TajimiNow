@@ -14,8 +14,17 @@
 
                     if (amedas != null)
                     {
-                        lastTime = amedas.Time;
-                        await MisskeyApi.Post($"🌡 {amedas.Temperature} ℃ 💨 {amedas.WindSpeed} m/s\n☀ {amedas.SunshineHours} min/h 🌧 {amedas.Precipitation1h} mm/h\n({amedas.Time.ToString("HH:mm")})");
+                        var text = $"🌡 {amedas.Temperature} ℃ 💨 {amedas.WindSpeed} m/s\n☀ {amedas.SunshineHours} min/h 🌧 {amedas.Precipitation1h} mm/h\n({amedas.Time.ToString("HH:mm")})";
+                        try
+                        {
+                            await MisskeyApi.Post(text);
+                            lastTime = amedas.Time;
+                            Console.Error.WriteLine($"Successful: {text}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine($"Failed: {ex}");
+                        }
                     }
                 }
 

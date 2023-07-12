@@ -33,7 +33,7 @@ namespace TajimiNow
             var data = rawData[timeKey];
             var floorTime = DateTime.ParseExact(timeKey, "yyyyMMddHHmmss", null);
 
-            return new(floorTime, data.temp[0], data.precipitation1h[0], data.sun1h[0], data.wind[0]);
+            return new(floorTime, data.temp[0], data.precipitation1h[0], 60 * data.sun1h[0], data.wind[0]);
         }
 
         private Amedas(DateTime time, double temperature, double precipitation1h, double sunshineHours, double windSpeed)
