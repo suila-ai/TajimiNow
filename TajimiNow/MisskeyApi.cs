@@ -22,21 +22,13 @@ namespace TajimiNow
             api = new(server, token);
         }
 
-        public static async Task Post(string text)
+        public static async Task Post(string text, string? visibility = null)
         {
             try
             {
-                await api.ApiAsync<Dictionary<string, Note>>("notes/create", new
-                {
-                    text,
-                    visibility = Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY") ?? "followers",
-
-                });
+                await api.ApiAsync<Dictionary<string, Note>>("notes/create", new { text, visibility = visibility ?? "specified"});
             }
-            catch
-            {
-                throw;
-            }
+            catch { throw; }
         }
     }
 }

@@ -1,0 +1,83 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace TajimiNow.Jma
+{
+    internal class Forecast
+    {
+        private static readonly HttpClient httpClient = new();
+
+        public static async Task<Forecast?> Get(string point, DateOnly date)
+        {
+            var prefCode = point[..2];
+            var url = $"https://www.jma.go.jp/bosai/forecast/data/forecast/{prefCode}0000.json";
+            IReadOnlyList<RawData>? rawData = null;
+            try
+            {
+                var res = await httpClient.GetAsync(url);
+                var stream = await res.Content.ReadAsStreamAsync();
+                rawData = await JsonSerializer.DeserializeAsync<IReadOnlyList<RawData>>(stream);
+            }
+            catch (Exception) { return null; }
+            if (rawData == null) return null;
+
+            var timeSeries = rawData[0].timeSeries;
+            var areaIndex = timeSeries[0].areas.Indexes(e => e.area.code == point).FirstOrDefault(-1);
+            var index = timeSeries[0].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
+            if (areaIndex == -1 || index == -1) return null;
+
+            var areaData = timeSeries[0].areas[areaIndex];
+            var weatherCode = int.Parse(areaData.weatherCodes[index]);
+            var weather = areaData.weathers[index];
+
+            var indexes = timeSeries[1].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).ToHashSet();
+            var pops = timeSeries[1].areas[areaIndex].pops.Where((e, i) => indexes.Contains(i)).Select(e => int.Parse(e)).ToList();
+
+            var minTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[0]);
+            var maxTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[1]);
+
+            return new(weatherCode, weather, pops, minTemp, maxTemp);
+        }
+
+        private Forecast(int weatherCode, string weather, IReadOnlyList<int> pops, int minTemperature, int maxTemperature)
+        {
+            WeatherCode = weatherCode;
+            Weather = weather;
+            Pops = pops;
+            MinTemperature = minTemperature;
+            MaxTemperature = maxTemperature;
+        }
+
+        public int WeatherCode { get; }
+        public string Weather { get; }
+        public IReadOnlyList<int> Pops { get; }
+        public int MinTemperature { get; }
+        public int MaxTemperature { get; }
+
+        private record RawData(
+            IReadOnlyList<TimeSeries> timeSeries
+        );
+
+        private record TimeSeries(
+            IReadOnlyList<DateTime> timeDefines,
+            IReadOnlyList<Area> areas
+        );
+
+        private record Area(
+             AreaInfo area,
+             IReadOnlyList<string> weatherCodes,
+             IReadOnlyList<string> weathers,
+             IReadOnlyList<string> pops,
+             IReadOnlyList<string> temps
+        );
+
+        private record AreaInfo(
+            string name,
+            string code
+        );
+    }
+}

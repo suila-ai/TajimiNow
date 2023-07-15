@@ -5,24 +5,24 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace TajimiNow
+namespace TajimiNow.Jma
 {
     internal class Amedas
     {
-        private static HttpClient httpClient = new HttpClient();
+        private static readonly HttpClient httpClient = new();
 
-        public static async Task<Amedas?> Get(int Point, DateTime time)
+        public static async Task<Amedas?> Get(string point, DateTime time)
         {
             var date = time.ToString("yyyyMMdd");
             var floorHour = (time.Hour / 3 * 3).ToString("D2");
-            var url = $"https://www.jma.go.jp/bosai/amedas/data/point/{Point}/{date}_{floorHour}.json";
+            var url = $"https://www.jma.go.jp/bosai/amedas/data/point/{point}/{date}_{floorHour}.json";
 
-            SortedDictionary<string, RawData>? rawData = null;
+            Dictionary<string, RawData>? rawData = null;
             try
             {
                 var res = await httpClient.GetAsync(url);
                 var stream = await res.Content.ReadAsStreamAsync();
-                rawData = await JsonSerializer.DeserializeAsync<SortedDictionary<string, RawData>>(stream);
+                rawData = await JsonSerializer.DeserializeAsync<Dictionary<string, RawData>>(stream);
             }
             catch (Exception) { return null; }
             if (rawData == null) return null;
@@ -51,11 +51,11 @@ namespace TajimiNow
         public double SunshineHours { get; }
         public double WindSpeed { get; }
 
-         private record RawData(
-             IReadOnlyList<double> temp,
-             IReadOnlyList<double> sun1h,
-             IReadOnlyList<double> precipitation1h,
-             IReadOnlyList<double> wind
-         );
+        private record RawData(
+            IReadOnlyList<double> temp,
+            IReadOnlyList<double> sun1h,
+            IReadOnlyList<double> precipitation1h,
+            IReadOnlyList<double> wind
+        );
     }
 }
