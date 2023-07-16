@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TajimiNow.Jma;
 using TajimiNow.Jma.Weather;
+using TajimiNow.Misskey;
 
 namespace TajimiNow
 {
@@ -27,7 +28,7 @@ namespace TajimiNow
                             $"({amedas.Time:HH:mm})";
                         try
                         {
-                            await MisskeyApi.Post(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_AMEDAS"));
+                            await Api.Post(new(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_AMEDAS") ?? "specified"));
                             lastTime = amedas.Time;
                             Console.Error.WriteLine($"Successful: {text}");
                         }
@@ -48,7 +49,9 @@ namespace TajimiNow
 
             while (true)
             {
-                var today = DateOnly.FromDateTime(DateTime.Now);
+                var overwriteDate = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_OVERWRITE_DATE");
+                var today = overwriteDate == null ? DateOnly.FromDateTime(DateTime.Now) : DateOnly.Parse(overwriteDate);
+
                 if (lastDate < today)
                 {
                     var forecast = await Forecast.Get("210010", today);
@@ -60,9 +63,17 @@ namespace TajimiNow
                             $"降水確率: {string.Join("→", forecast.Pops)} %\n" +
                             $"気温: ↓{forecast.MinTemperature} ↑{forecast.MaxTemperature} ℃";
 
+                        var note = new Note(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_FORECAST") ?? "specified");
+
+                        var tajimiChanceFile = Environment.GetEnvironmentVariable("MISSKEY_TAJIMI_CHANCE_FILE");
+                        if (forecast.MaxTemperature > 35.3 && tajimiChanceFile != null)
+                        {
+                            note = note.AddFiles(new[] { tajimiChanceFile });
+                        }
+
                         try
                         {
-                            await MisskeyApi.Post(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_FORECAST"));
+                            await Api.Post(note);
                             lastDate = today;
                             Console.Error.WriteLine($"Successful: {text}");
                         }

@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Misskey\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 

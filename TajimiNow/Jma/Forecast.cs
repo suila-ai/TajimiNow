@@ -27,18 +27,21 @@ namespace TajimiNow.Jma
 
             var timeSeries = rawData[0].timeSeries;
             var areaIndex = timeSeries[0].areas.Indexes(e => e.area.code == point).FirstOrDefault(-1);
-            var index = timeSeries[0].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
-            if (areaIndex == -1 || index == -1) return null;
+            var weatherIndex = timeSeries[0].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
+            if (areaIndex == -1 || weatherIndex == -1) return null;
 
             var areaData = timeSeries[0].areas[areaIndex];
-            var weatherCode = int.Parse(areaData.weatherCodes[index]);
-            var weather = areaData.weathers[index];
+            var weatherCode = int.Parse(areaData.weatherCodes[weatherIndex]);
+            var weather = areaData.weathers[weatherIndex];
 
-            var indexes = timeSeries[1].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).ToHashSet();
-            var pops = timeSeries[1].areas[areaIndex].pops.Where((e, i) => indexes.Contains(i)).Select(e => int.Parse(e)).ToList();
+            var pops = timeSeries[1].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).Select(e => int.Parse(timeSeries[1].areas[areaIndex].pops[e])).ToList();
+            if (pops.Count() == 0) return null;
 
-            var minTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[0]);
-            var maxTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[1]);
+            var minTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(0, 0))).FirstOrDefault(-1);
+            var maxTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(9, 0))).FirstOrDefault(-1);
+            if (minTempIndex== -1 || maxTempIndex == -1) return null;
+            var minTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[minTempIndex]);
+            var maxTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[maxTempIndex]);
 
             return new(weatherCode, weather, pops, minTemp, maxTemp);
         }

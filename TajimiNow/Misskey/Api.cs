@@ -6,13 +6,13 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TajimiNow
+namespace TajimiNow.Misskey
 {
-    internal class MisskeyApi
+    internal class Api
     {
-        private static Misskey api;
+        private static readonly MisskeyDotNet.Misskey api;
 
-        static MisskeyApi()
+        static Api()
         {
             var server = Environment.GetEnvironmentVariable("MISSKEY_SERVER");
             var token = Environment.GetEnvironmentVariable("MISSKEY_TOKEN");
@@ -22,11 +22,11 @@ namespace TajimiNow
             api = new(server, token);
         }
 
-        public static async Task Post(string text, string? visibility = null)
+        public static async Task Post(Note note)
         {
             try
             {
-                await api.ApiAsync<Dictionary<string, Note>>("notes/create", new { text, visibility = visibility ?? "specified"});
+                await api.ApiAsync<Dictionary<string, Note>>("notes/create", note);
             }
             catch { throw; }
         }
