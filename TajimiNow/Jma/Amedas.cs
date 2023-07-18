@@ -36,6 +36,34 @@ namespace TajimiNow.Jma
             return new(floorTime, data.temp[0], data.precipitation1h[0], 60 * data.sun1h[0], data.wind[0]);
         }
 
+        public static async IAsyncEnumerable<Amedas> GetDay(string point, DateOnly date)
+        {
+            var dateStr = date.ToString("yyyyMMdd");
+
+            for (var i = 0; i < 8; i++)
+            {
+                var url = $"https://www.jma.go.jp/bosai/amedas/data/point/{point}/{dateStr}_{i * 3:D2}.json";
+
+                Dictionary<string, RawData>? rawData = null;
+                try
+                {
+                    var res = await httpClient.GetAsync(url);
+                    var stream = await res.Content.ReadAsStreamAsync();
+                    rawData = await JsonSerializer.DeserializeAsync<Dictionary<string, RawData>>(stream);
+                }
+                catch (Exception) {}
+
+                if (rawData != null)
+                {
+                    foreach (var (timeKey, data) in rawData)
+                    {
+                        var time = DateTime.ParseExact(timeKey, "yyyyMMddHHmmss", null);
+                        yield return new(time, data.temp[0], data.precipitation1h[0], 60 * data.sun1h[0], data.wind[0]);
+                    }
+                }
+            }
+        }
+
         private Amedas(DateTime time, double temperature, double precipitation1h, double sunshineHours, double windSpeed)
         {
             Time = time;

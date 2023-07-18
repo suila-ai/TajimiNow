@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            Task.WaitAll(Jobs.RunAmedas(), Jobs.RunForecast());
+            Task.WaitAll(Jobs.RunAmedas(), Jobs.RunDaily());
         }
     }
 }

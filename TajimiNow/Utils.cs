@@ -13,5 +13,14 @@ namespace TajimiNow
         {
             return source.Select((e, i) => (i, e)).Where(e => predicate(e.e)).Select(e => e.i);
         }
+
+        public static async ValueTask<TSource?> MaxByAsync<TSource, TKey>(
+            this IAsyncEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            CancellationToken cancellationToken = default
+        ) where TKey : IComparable<TKey>
+        {
+            return await source.AggregateAsync((a, b) => keySelector(a).CompareTo(keySelector(b)) >= 0 ? a : b, cancellationToken);
+        }
     }
 }

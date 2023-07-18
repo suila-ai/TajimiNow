@@ -8,7 +8,7 @@ namespace TajimiNow.Misskey
 {
     internal record Note(string text, string visibility)
     {
-        public NoteWithFiles AddFiles(string[] fileIds) => new(text, visibility, fileIds);
+        public NoteWithFiles AddFiles(params string[] fileIds) => new(text, visibility, fileIds);
     }
 
     internal record NoteWithFiles(string text, string visibility, string[] fileIds) : Note(text, visibility);
