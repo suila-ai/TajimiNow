@@ -14,19 +14,19 @@ namespace TajimiNow.Misskey
 
         static Api()
         {
-            var server = Environment.GetEnvironmentVariable("MISSKEY_SERVER");
-            var token = Environment.GetEnvironmentVariable("MISSKEY_TOKEN");
+            var server = EnvVar.MisskeyServer;
+            var token = EnvVar.MisskeyToken;
 
             if (server == null || token == null) throw new InvalidOperationException();
 
             api = new(server, token);
         }
 
-        public static async Task Post(Note note)
+        public static async Task Post(PostNote note)
         {
             try
             {
-                await api.ApiAsync<Dictionary<string, Note>>("notes/create", note);
+                await api.ApiAsync<Dictionary<string, PostNote>>("notes/create", note);
             }
             catch { throw; }
         }

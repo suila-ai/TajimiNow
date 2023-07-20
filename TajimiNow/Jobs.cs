@@ -15,11 +15,14 @@ namespace TajimiNow
         {
             var lastTime = DateTime.MinValue;
 
+            var pointCode = EnvVar.AmedasPointCode;
+            if (pointCode == null) return;
+
             while (true)
             {
                 if (DateTime.Now - lastTime > TimeSpan.FromMinutes(15))
                 {
-                    var amedas = await Amedas.Get("52606", DateTime.Now);
+                    var amedas = await Amedas.Get(pointCode, DateTime.Now);
 
                     if (amedas != null)
                     {
@@ -28,7 +31,7 @@ namespace TajimiNow
                             $"({amedas.Time:HH:mm})";
                         try
                         {
-                            await Api.Post(new(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_AMEDAS") ?? "specified"));
+                            await Api.Post(new(text, EnvVar.AmedasVisibility));
                             lastTime = amedas.Time;
                             Console.Error.WriteLine($"Successful: {text}");
                         }
@@ -51,7 +54,7 @@ namespace TajimiNow
 
             while (true)
             {
-                var overwriteDate = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_OVERWRITE_DATE");
+                var overwriteDate = EnvVar.ForecastOverwriteDate;
                 var today = overwriteDate == null ? DateOnly.FromDateTime(DateTime.Now) : DateOnly.Parse(overwriteDate);
 
                 if (lastDate < today)
@@ -61,7 +64,7 @@ namespace TajimiNow
                     lastDate = today;
                 }
 
-                if (!succeededMaxTemp) succeededMaxTemp = await RunMaxTemp(today.AddDays(-1));
+                if (!succeededMaxTemp) succeededMaxTemp = await RunMinMaxTemp(today.AddDays(-1));
                 if (!succeededForecast) succeededForecast = await RunForecast(today);
 
                 await Task.Delay(TimeSpan.FromSeconds(60));
@@ -70,20 +73,28 @@ namespace TajimiNow
 
         private static async Task<bool> RunForecast(DateOnly date)
         {
-            var forecast = await Forecast.Get("210010", date);
+            var pointCode = EnvVar.ForecastPointCode;
+            if (pointCode == null) return true;
+
+            var forecast = await Forecast.Get(pointCode, date);
             if (forecast == null) return false;
             var weather = WeatherRegistry.GetFromCode(forecast.WeatherCode);
-            var text = $"{date:MM/dd} 天気予報(美濃地方)\n" +
+            var text = $"{date:MM/dd} 天気予報({forecast.AreaName})\n" +
                 $"{weather.Mfm} {weather.Name}\n" +
                 $"降水確率: {string.Join("→", forecast.Pops)} %\n" +
                 $"気温: ↓{forecast.MinTemperature} ↑{forecast.MaxTemperature} ℃";
 
-            var note = new Note(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_FORECAST") ?? "specified");
+            var note = new PostNote(text, EnvVar.ForecastVisibility);
 
-            var tajimiChanceFile = Environment.GetEnvironmentVariable("MISSKEY_TAJIMI_CHANCE_FILE");
-            if (forecast.MaxTemperature > 35.3 && tajimiChanceFile != null)
+            var maxChanceFile = EnvVar.MaxChanceFile;
+            if (forecast.MaxTemperature > EnvVar.MaxChanceThreshold && maxChanceFile != null)
             {
-                note = note.AddFiles(tajimiChanceFile);
+                note = note.AddFiles(maxChanceFile);
+            }
+            var minChanceFile = EnvVar.MinChanceFile;
+            if (forecast.MinTemperature < EnvVar.MinChanceThreshold && minChanceFile != null)
+            {
+                note = note.AddFiles(minChanceFile);
             }
 
             try
@@ -100,18 +111,31 @@ namespace TajimiNow
 
         }
 
-        private static async Task<bool> RunMaxTemp(DateOnly date)
+        private static async Task<bool> RunMinMaxTemp(DateOnly date)
         {
-            var maxAmedas = await Amedas.GetDay("52606", date).MaxByAsync(e => e.Temperature);
-            if (maxAmedas == null) return false;
-            var text = $"昨日({date:MM/dd})の最高気温🌡\n" +
-                $"{maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})";
-            var note = new Note(text, Environment.GetEnvironmentVariable("MISSKEY_VISIBILITY_MAX_TEMP") ?? "specified");
+            var pointCode = EnvVar.AmedasPointCode;
+            if (pointCode == null) return true;
 
-            var tajimiAchievedFile = Environment.GetEnvironmentVariable("MISSKEY_TAJIMI_ACHIEVED_FILE");
-            if (maxAmedas.Temperature > 35.3 && tajimiAchievedFile != null)
+            var amedas = await Amedas.GetDay(pointCode, date).ToArrayAsync();
+            var maxAmedas = amedas.MaxBy(e => e.Temperature);
+            var minAmedas = amedas.MinBy(e => e.Temperature);
+            if (maxAmedas == null || minAmedas == null) return false;
+
+            var text = $"昨日({date:MM/dd})の最高・最低気温🌡\n" +
+                $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
+                $"最低: {minAmedas.Temperature} ℃ ({minAmedas.Time:HH:mm})";
+
+            var note = new PostNote(text, EnvVar.MinMaxTempVisibility);
+
+            var maxAchievedFile = EnvVar.MaxAchievedFile;
+            if (maxAmedas.Temperature > EnvVar.MaxChanceThreshold && maxAchievedFile != null)
             {
-                note = note.AddFiles(tajimiAchievedFile);
+                note = note.AddFiles(maxAchievedFile);
+            }
+            var minAchievedFile = EnvVar.MinAchievedFile;
+            if (minAmedas.Temperature < EnvVar.MinChanceThreshold && minAchievedFile != null)
+            {
+                note = note.AddFiles(minAchievedFile);
             }
 
             try

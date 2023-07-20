@@ -31,11 +31,12 @@ namespace TajimiNow.Jma
             if (areaIndex == -1 || weatherIndex == -1) return null;
 
             var areaData = timeSeries[0].areas[areaIndex];
+            var areaName = areaData.area.name;
             var weatherCode = int.Parse(areaData.weatherCodes[weatherIndex]);
             var weather = areaData.weathers[weatherIndex];
 
             var pops = timeSeries[1].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).Select(e => int.Parse(timeSeries[1].areas[areaIndex].pops[e])).ToList();
-            if (pops.Count() == 0) return null;
+            if (pops.Count == 0) return null;
 
             var minTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(0, 0))).FirstOrDefault(-1);
             var maxTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(9, 0))).FirstOrDefault(-1);
@@ -43,11 +44,12 @@ namespace TajimiNow.Jma
             var minTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[minTempIndex]);
             var maxTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[maxTempIndex]);
 
-            return new(weatherCode, weather, pops, minTemp, maxTemp);
+            return new(areaName, weatherCode, weather, pops, minTemp, maxTemp);
         }
 
-        private Forecast(int weatherCode, string weather, IReadOnlyList<int> pops, int minTemperature, int maxTemperature)
+        private Forecast(string areaName, int weatherCode, string weather, IReadOnlyList<int> pops, int minTemperature, int maxTemperature)
         {
+            AreaName = areaName;
             WeatherCode = weatherCode;
             Weather = weather;
             Pops = pops;
@@ -55,6 +57,7 @@ namespace TajimiNow.Jma
             MaxTemperature = maxTemperature;
         }
 
+        public string AreaName { get; }
         public int WeatherCode { get; }
         public string Weather { get; }
         public IReadOnlyList<int> Pops { get; }
