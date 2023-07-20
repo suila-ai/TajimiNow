@@ -17,7 +17,7 @@ namespace TajimiNow.Jma
             var floorHour = (time.Hour / 3 * 3).ToString("D2");
             var url = $"https://www.jma.go.jp/bosai/amedas/data/point/{point}/{date}_{floorHour}.json";
 
-            Dictionary<string, RawData>? rawData = null;
+            Dictionary<string, RawData>? rawData;
             try
             {
                 var res = await httpClient.GetAsync(url);
@@ -28,7 +28,7 @@ namespace TajimiNow.Jma
             if (rawData == null) return null;
 
             var floorMinute = (time.Minute / 10 * 10).ToString("D2");
-            var timeKey = $"{time.ToString("yyyyMMddHH")}{floorMinute}00";
+            var timeKey = $"{time:yyyyMMddHH}{floorMinute}00";
             if (!rawData.ContainsKey(timeKey)) return null;
             var data = rawData[timeKey];
             var floorTime = DateTime.ParseExact(timeKey, "yyyyMMddHHmmss", null);
@@ -79,6 +79,7 @@ namespace TajimiNow.Jma
         public double SunshineHours { get; }
         public double WindSpeed { get; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record RawData(
             IReadOnlyList<double> temp,
             IReadOnlyList<double> sun1h,

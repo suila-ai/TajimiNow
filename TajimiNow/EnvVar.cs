@@ -11,7 +11,8 @@ namespace TajimiNow
         public static string? MisskeyServer { get; } = Environment.GetEnvironmentVariable("MISSKEY_SERVER");
         public static string? MisskeyToken { get; } = Environment.GetEnvironmentVariable("MISSKEY_TOKEN");
         public static string? AmedasPointCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_AMEDAS_POINT_CODE");
-        public static string? ForecastPointCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_POINT_CODE");
+        public static string? ForecastOfficeCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_OFFICE_CODE");
+        public static string? ForecastAreaCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_AREA_CODE");
         public static string AmedasVisibility { get; } = Environment.GetEnvironmentVariable("MISSKEY_AMEDAS_VISIBILITY") ?? "specified";
         public static string ForecastVisibility { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_VISIBILITY") ?? "specified";
         public static string MinMaxTempVisibility { get; } = Environment.GetEnvironmentVariable("MISSKEY_MIN_MAX_TEMP_VISIBILITY") ?? "specified";

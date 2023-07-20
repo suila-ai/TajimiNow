@@ -73,10 +73,11 @@ namespace TajimiNow
 
         private static async Task<bool> RunForecast(DateOnly date)
         {
-            var pointCode = EnvVar.ForecastPointCode;
-            if (pointCode == null) return true;
+            var officeCode = EnvVar.ForecastOfficeCode;
+            var areaCode = EnvVar.ForecastAreaCode;
+            if (officeCode == null || areaCode == null) return true;
 
-            var forecast = await Forecast.Get(pointCode, date);
+            var forecast = await Forecast.Get(officeCode, areaCode, date);
             if (forecast == null) return false;
             var weather = WeatherRegistry.GetFromCode(forecast.WeatherCode);
             var text = $"{date:MM/dd} 天気予報({forecast.AreaName})\n" +

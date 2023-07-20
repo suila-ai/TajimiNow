@@ -11,10 +11,9 @@ namespace TajimiNow.Jma
     {
         private static readonly HttpClient httpClient = new();
 
-        public static async Task<Forecast?> Get(string point, DateOnly date)
+        public static async Task<Forecast?> Get(string officeCode, string areaCode, DateOnly date)
         {
-            var prefCode = point[..2];
-            var url = $"https://www.jma.go.jp/bosai/forecast/data/forecast/{prefCode}0000.json";
+            var url = $"https://www.jma.go.jp/bosai/forecast/data/forecast/{officeCode}.json";
             IReadOnlyList<RawData>? rawData = null;
             try
             {
@@ -26,7 +25,7 @@ namespace TajimiNow.Jma
             if (rawData == null) return null;
 
             var timeSeries = rawData[0].timeSeries;
-            var areaIndex = timeSeries[0].areas.Indexes(e => e.area.code == point).FirstOrDefault(-1);
+            var areaIndex = timeSeries[0].areas.Indexes(e => e.area.code == areaCode).FirstOrDefault(-1);
             var weatherIndex = timeSeries[0].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
             if (areaIndex == -1 || weatherIndex == -1) return null;
 
@@ -64,15 +63,18 @@ namespace TajimiNow.Jma
         public int MinTemperature { get; }
         public int MaxTemperature { get; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record RawData(
             IReadOnlyList<TimeSeries> timeSeries
         );
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record TimeSeries(
             IReadOnlyList<DateTime> timeDefines,
             IReadOnlyList<Area> areas
         );
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record Area(
              AreaInfo area,
              IReadOnlyList<string> weatherCodes,
@@ -81,6 +83,7 @@ namespace TajimiNow.Jma
              IReadOnlyList<string> temps
         );
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record AreaInfo(
             string name,
             string code
