@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TajimiNow.Misskey
+namespace TajimiNow.Misskey.Models
 {
     internal record PostNote(string text, string visibility)
     {

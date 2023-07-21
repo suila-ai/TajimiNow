@@ -2,15 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TajimiNow.Jma;
 using TajimiNow.Jma.Weather;
 using TajimiNow.Misskey;
+using TajimiNow.Misskey.Models;
 
 namespace TajimiNow
 {
     internal class Jobs
     {
+        private static readonly Regex forecastRegex = new(
+            "[0-9]{2}/[0-9]{2} 天気予報\\(.*\\)\n" +
+            ".+\n" +
+            "降水確率: [0-9→]+ %\n" +
+            "気温: ↓[0-9.]+ ↑[0-9.]+ ℃"
+        );
+        private static readonly Regex minMaxRegex = new(
+            "昨日\\([0-9]{2}/[0-9]{2}\\)の最高・最低気温🌡\n" +
+            "最高: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)\n" +
+            "最低: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)"
+        );
+
         public static async Task RunAmedas()
         {
             var lastTime = DateTime.MinValue;
@@ -100,7 +114,10 @@ namespace TajimiNow
 
             try
             {
-                await Api.Post(note);
+                await RegexUnpin(forecastRegex);
+                var result = await Api.Post(note);
+                await Api.Pin(result.Id);
+
                 Console.Error.WriteLine($"Successful: {text}");
                 return true;
             }
@@ -109,7 +126,6 @@ namespace TajimiNow
                 Console.Error.WriteLine($"Failed: {ex}");
                 return false;
             }
-
         }
 
         private static async Task<bool> RunMinMaxTemp(DateOnly date)
@@ -141,7 +157,10 @@ namespace TajimiNow
 
             try
             {
-                await Api.Post(note);
+                await RegexUnpin(minMaxRegex);
+                var result = await Api.Post(note);
+                await Api.Pin(result.Id);
+
                 Console.Error.WriteLine($"Successful: {text}");
                 return true;
             }
@@ -150,6 +169,22 @@ namespace TajimiNow
                 Console.Error.WriteLine($"Failed: {ex}");
                 return false;
             }
+        }
+
+        private static async Task RegexUnpin(Regex regex)
+        {
+            try
+            {
+                var pinned = await Api.GetPinnedNotes();
+                foreach (var note in pinned)
+                {
+                    if (note.Text != null && regex.IsMatch(note.Text))
+                    {
+                        await Api.Unpin(note.Id);
+                    }
+                }
+            }
+            catch (Exception) { throw; }
         }
     }
 }

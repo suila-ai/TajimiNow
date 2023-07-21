@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using TajimiNow.Misskey.Models;
 
 namespace TajimiNow.Misskey
 {
@@ -22,13 +24,40 @@ namespace TajimiNow.Misskey
             api = new(server, token);
         }
 
-        public static async Task Post(PostNote note)
+        public static async Task<Note> Post(PostNote note)
         {
             try
             {
-                await api.ApiAsync<Dictionary<string, PostNote>>("notes/create", note);
+                var res = await api.ApiAsync<Dictionary<string, Note>>("notes/create", note);
+                return res["createdNote"];
             }
             catch { throw; }
         }
+
+        public static async Task<IReadOnlyList<Note>> GetPinnedNotes()
+        {
+            try
+            {
+                var res = await api.ApiAsync<MeDetailed>("i");
+                return res.PinnedNotes;
+            }
+            catch { throw; }
+        }
+
+        public static async Task Pin(string noteId)
+        {
+            try
+            {
+                await api.ApiAsync("i/pin", new { noteId });
+            } catch { throw; }
+        }
+        public static async Task Unpin(string noteId)
+        {
+            try
+            {
+                await api.ApiAsync("i/unpin", new { noteId });
+            } catch { throw; }
+        }
+
     }
 }
