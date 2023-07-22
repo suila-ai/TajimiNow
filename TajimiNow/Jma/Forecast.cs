@@ -10,6 +10,7 @@ namespace TajimiNow.Jma
     internal class Forecast
     {
         private static readonly HttpClient httpClient = new();
+        private static readonly JsonSerializerOptions serializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
         public static async Task<Forecast?> Get(string officeCode, string areaCode, DateOnly date)
         {
@@ -19,29 +20,29 @@ namespace TajimiNow.Jma
             {
                 var res = await httpClient.GetAsync(url);
                 var stream = await res.Content.ReadAsStreamAsync();
-                rawData = await JsonSerializer.DeserializeAsync<IReadOnlyList<RawData>>(stream);
+                rawData = await JsonSerializer.DeserializeAsync<IReadOnlyList<RawData>>(stream, serializerOptions);
             }
             catch (Exception) { return null; }
             if (rawData == null) return null;
 
-            var timeSeries = rawData[0].timeSeries;
-            var areaIndex = timeSeries[0].areas.Indexes(e => e.area.code == areaCode).FirstOrDefault(-1);
-            var weatherIndex = timeSeries[0].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
+            var timeSeries = rawData[0].TimeSeries;
+            var areaIndex = timeSeries[0].Areas.Indexes(e => e.Area.Code == areaCode).FirstOrDefault(-1);
+            var weatherIndex = timeSeries[0].TimeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).FirstOrDefault(-1);
             if (areaIndex == -1 || weatherIndex == -1) return null;
 
-            var areaData = timeSeries[0].areas[areaIndex];
-            var areaName = areaData.area.name;
-            var weatherCode = int.Parse(areaData.weatherCodes[weatherIndex]);
-            var weather = areaData.weathers[weatherIndex];
+            var areaData = timeSeries[0].Areas[areaIndex];
+            var areaName = areaData.Area.Name;
+            var weatherCode = int.Parse(areaData.WeatherCodes[weatherIndex]);
+            var weather = areaData.Weathers[weatherIndex];
 
-            var pops = timeSeries[1].timeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).Select(e => int.Parse(timeSeries[1].areas[areaIndex].pops[e])).ToList();
+            var pops = timeSeries[1].TimeDefines.Indexes(e => DateOnly.FromDateTime(e) == date).Select(e => int.Parse(timeSeries[1].Areas[areaIndex].Pops[e])).ToList();
             if (pops.Count == 0) return null;
 
-            var minTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(0, 0))).FirstOrDefault(-1);
-            var maxTempIndex = timeSeries[2].timeDefines.Indexes(e => e == date.ToDateTime(new(9, 0))).FirstOrDefault(-1);
+            var minTempIndex = timeSeries[2].TimeDefines.Indexes(e => e == date.ToDateTime(new(0, 0))).FirstOrDefault(-1);
+            var maxTempIndex = timeSeries[2].TimeDefines.Indexes(e => e == date.ToDateTime(new(9, 0))).FirstOrDefault(-1);
             if (minTempIndex== -1 || maxTempIndex == -1) return null;
-            var minTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[minTempIndex]);
-            var maxTemp = int.Parse(timeSeries[2].areas[areaIndex].temps[maxTempIndex]);
+            var minTemp = int.Parse(timeSeries[2].Areas[areaIndex].Temps[minTempIndex]);
+            var maxTemp = int.Parse(timeSeries[2].Areas[areaIndex].Temps[maxTempIndex]);
 
             return new(areaName, weatherCode, weather, pops, minTemp, maxTemp);
         }
@@ -63,30 +64,26 @@ namespace TajimiNow.Jma
         public int MinTemperature { get; }
         public int MaxTemperature { get; }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record RawData(
-            IReadOnlyList<TimeSeries> timeSeries
+            IReadOnlyList<TimeSeries> TimeSeries
         );
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record TimeSeries(
-            IReadOnlyList<DateTime> timeDefines,
-            IReadOnlyList<Area> areas
+            IReadOnlyList<DateTime> TimeDefines,
+            IReadOnlyList<AreaData> Areas
         );
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
-        private record Area(
-             AreaInfo area,
-             IReadOnlyList<string> weatherCodes,
-             IReadOnlyList<string> weathers,
-             IReadOnlyList<string> pops,
-             IReadOnlyList<string> temps
+        private record AreaData(
+             AreaInfo Area,
+             IReadOnlyList<string> WeatherCodes,
+             IReadOnlyList<string> Weathers,
+             IReadOnlyList<string> Pops,
+             IReadOnlyList<string> Temps
         );
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006")]
         private record AreaInfo(
-            string name,
-            string code
+            string Name,
+            string Code
         );
     }
 }

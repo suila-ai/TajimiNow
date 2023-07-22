@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TajimiNow.Jma;
+using TajimiNow.Jma.Amedas;
 using TajimiNow.Jma.Weather;
 using TajimiNow.Misskey;
 using TajimiNow.Misskey.Models;
@@ -42,7 +43,7 @@ namespace TajimiNow
                     {
                         var text = $"🌡 {amedas.Temperature} ℃ 💨 {amedas.WindSpeed} m/s\n" +
                             $"☀ {amedas.SunshineHours} min/h  🌧 {amedas.Precipitation1h} mm/h\n" +
-                            $"({amedas.Time:HH:mm})";
+                            $"({amedas.Point.Name} {amedas.Time:HH:mm})";
                         try
                         {
                             await Api.Post(new(text, EnvVar.AmedasVisibility));
@@ -138,7 +139,7 @@ namespace TajimiNow
             var minAmedas = amedas.MinBy(e => e.Temperature);
             if (maxAmedas == null || minAmedas == null) return false;
 
-            var text = $"昨日({date:MM/dd})の最高・最低気温🌡\n" +
+            var text = $"昨日({date:MM/dd})の気温🌡 ({maxAmedas.Point.Name})\n" +
                 $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
                 $"最低: {minAmedas.Temperature} ℃ ({minAmedas.Time:HH:mm})";
 
@@ -178,10 +179,7 @@ namespace TajimiNow
                 var pinned = await Api.GetPinnedNotes();
                 foreach (var note in pinned)
                 {
-                    if (note.Text != null && regex.IsMatch(note.Text))
-                    {
-                        await Api.Unpin(note.Id);
-                    }
+                    if (note.Text != null && regex.IsMatch(note.Text)) await Api.Unpin(note.Id);
                 }
             }
             catch (Exception) { throw; }
