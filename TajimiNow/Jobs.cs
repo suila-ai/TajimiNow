@@ -21,7 +21,7 @@ namespace TajimiNow
             "気温: ↓[0-9.]+ ↑[0-9.]+ ℃"
         );
         private static readonly Regex minMaxRegex = new(
-            "昨日\\([0-9]{2}/[0-9]{2}\\)の最高・最低気温🌡\n" +
+            "昨日\\([0-9]{2}/[0-9]{2}\\)の最高・最低気温\\(.*\\)\n" +
             "最高: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)\n" +
             "最低: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)"
         );
@@ -139,7 +139,7 @@ namespace TajimiNow
             var minAmedas = amedas.MinBy(e => e.Temperature);
             if (maxAmedas == null || minAmedas == null) return false;
 
-            var text = $"昨日({date:MM/dd})の気温🌡 ({maxAmedas.Point.Name})\n" +
+            var text = $"昨日({date:MM/dd})の気温({maxAmedas.Point.Name})\n" +
                 $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
                 $"最低: {minAmedas.Temperature} ℃ ({minAmedas.Time:HH:mm})";
 
