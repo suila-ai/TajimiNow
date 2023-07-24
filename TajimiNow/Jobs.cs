@@ -21,7 +21,7 @@ namespace TajimiNow
             "気温: ↓[0-9.]+ ↑[0-9.]+ ℃"
         );
         private static readonly Regex minMaxRegex = new(
-            "昨日\\([0-9]{2}/[0-9]{2}\\)の最高・最低気温\\(.*\\)\n" +
+            "昨日\\([0-9]{2}/[0-9]{2}\\)の気温\\(.*\\)\n" +
             "最高: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)\n" +
             "最低: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)"
         );
@@ -63,13 +63,13 @@ namespace TajimiNow
 
         public static async Task RunDaily()
         {
-            var lastDate = DateOnly.MinValue;
-            var succeededMaxTemp = false;
-            var succeededForecast = false;
+            var overwriteDate = EnvVar.ForecastOverwriteDate;
+            var lastDate =  overwriteDate == null ? DateOnly.FromDateTime(DateTime.Now) : DateOnly.MinValue;
+            var succeededMaxTemp = true;
+            var succeededForecast = true;
 
             while (true)
             {
-                var overwriteDate = EnvVar.ForecastOverwriteDate;
                 var today = overwriteDate == null ? DateOnly.FromDateTime(DateTime.Now) : DateOnly.Parse(overwriteDate);
 
                 if (lastDate < today)
