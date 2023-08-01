@@ -1,6 +1,6 @@
 services:
   tajimi-now:
-    build:
+    build: .
     restart: always
     environment:
       # MisskeyサーバのFQDN
