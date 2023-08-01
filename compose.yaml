@@ -1,0 +1,44 @@
+services:
+  tajimi-now:
+    build:
+    restart: always
+    environment:
+      # MisskeyサーバのFQDN
+      MISSKEY_SERVER: misskey.example.com
+
+      # APIトークン (必須権限: read:account, write:account, write:notes)
+      MISSKEY_TOKEN: ExampleToken
+
+      # アメダスの地点コード (下記URLのキー)
+      # https://www.jma.go.jp/bosai/amedas/const/amedastable.json
+      MISSKEY_AMEDAS_POINT_CODE: "52606"
+
+      # 天気予報の気象台 (下記URLのキー)
+      # https://www.jma.go.jp/bosai/forecast/const/forecast_area.json
+      MISSKEY_FORECAST_OFFICE_CODE: "210000"
+      # 天気予報の地方コード (上記URLの"class10")
+      MISSKEY_FORECAST_AREA_CODE: "210010"
+
+      # ノートの公開範囲 有効値: public, home, followers, specified
+      MISSKEY_AMEDAS_VISIBILITY: home
+      MISSKEY_FORECAST_VISIBILITY: public
+      MISSKEY_MIN_MAX_TEMP_VISIBILITY: public
+
+      # 以下の設定は任意
+
+      # 最高気温が超えた場合(通称"多治見チャンス")の基準 (℃)
+      # MISSKEY_MAX_CHANCE_THRESHOLD:
+      # 天気予報で超えた場合の添付ファイルID
+      # MISSKEY_MAX_CHANCE_FILE:
+      # 観測結果で超えた場合の添付ファイルID
+      # MISSKEY_MAX_ACHIEVED_FILE:
+
+      # 最低気温が下回った場合
+      # MISSKEY_MIN_CHANCE_THRESHOLD:
+      # MISSKEY_MIN_CHANCE_FILE:
+      # MISSKEY_MIN_ACHIEVED_FILE:
+
+      # 以下デバッグ用
+
+      # 今日の日付を任意に設定
+      # MISSKEY_FORECAST_OVERWRITE_DATE:
