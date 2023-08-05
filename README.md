@@ -10,19 +10,22 @@
 
 ### 前提条件
 
+* curl または wget
 * Docker Engine 20.10.13以降
 
 ### インストール
 
 ```sh
-git clone https://github.com/suila-ai/TajimiNow.git
+mkdir TajimiNow
 cd TajimiNow
 
+curl -o compose.yaml https://raw.githubusercontent.com/suila-ai/TajimiNow/main/compose_example.yaml
+# wget -O compose.yaml https://raw.githubusercontent.com/suila-ai/TajimiNow/main/compose_example.yaml
+
 # 環境変数を設定
-cp compose_example.yaml compose.yaml
 vim compose.yaml
 
-docker compose build
+docker compose pull
 ```
 
 ### 起動
@@ -35,12 +38,11 @@ docker compose up -d
 
 ```sh
 docker compose down
-git pull --ff-only
 
 # 必要に応じて環境変数を編集
 vim compose.yaml
 
-docker compose build
+docker compose pull
 ```
 
 ## ライセンス
