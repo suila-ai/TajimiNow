@@ -1,7 +1,11 @@
 services:
   tajimi-now:
-    build: .
+    image: ghcr.io/suila-ai/tajimi-now:1.0
+    # ローカルビルド用
+    # build: .
+
     restart: always
+
     environment:
       # MisskeyサーバのFQDN
       MISSKEY_SERVER: misskey.example.com
