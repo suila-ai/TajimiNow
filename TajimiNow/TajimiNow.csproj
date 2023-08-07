@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Csv" Version="2.0.93" />
     <PackageReference Include="MisskeyDotNet" Version="1.1.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>

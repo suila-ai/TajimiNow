@@ -14,17 +14,8 @@ namespace TajimiNow
 {
     internal class Jobs
     {
-        private static readonly Regex forecastRegex = new(
-            "[0-9]{2}/[0-9]{2} 天気予報\\(.*\\)\n" +
-            ".+\n" +
-            "降水確率: [0-9→]+ %\n" +
-            "気温: ↓[0-9.]+ ↑[0-9.]+ ℃"
-        );
-        private static readonly Regex minMaxRegex = new(
-            "昨日\\([0-9]{2}/[0-9]{2}\\)の気温\\(.*\\)\n" +
-            "最高: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)\n" +
-            "最低: [0-9.]+ ℃ \\([0-9]{2}:[0-9]{2}\\)"
-        );
+        private static readonly Regex forecastRegex = new("^[0-9]{2}/[0-9]{2} 天気予報\\(.*\\)\n");
+        private static readonly Regex minMaxRegex = new("^昨日\\([0-9]{2}/[0-9]{2}\\)の気温\\(.*\\)\n");
 
         public static async Task RunAmedas()
         {
@@ -42,11 +33,13 @@ namespace TajimiNow
                     if (amedas != null)
                     {
                         var text = $"🌡 {amedas.Temperature} ℃ 💨 {amedas.WindSpeed} m/s\n" +
-                            $"☀ {amedas.SunshineHours} min/h  🌧 {amedas.Precipitation1h} mm/h\n" +
-                            $"({amedas.Point.Name} {amedas.Time:HH:mm})";
+                            $"☀ {amedas.SunshineHours} min/h  🌧 {amedas.Precipitation1h} mm/h";
+                        text = EnvVar.RegexReplace.Aggregate(text, (a, b) => b.pattern.Replace(a, b.replacement));
+                        var footer = $"({amedas.Point.Name} {amedas.Time:HH:mm})";
+
                         try
                         {
-                            await Api.Post(new(text, EnvVar.AmedasVisibility));
+                            await Api.Post(new($"{text}\n{footer}", EnvVar.AmedasVisibility));
                             lastTime = amedas.Time;
                             Console.Error.WriteLine($"Successful: {text}");
                         }
@@ -95,12 +88,14 @@ namespace TajimiNow
             var forecast = await Forecast.Get(officeCode, areaCode, date);
             if (forecast == null) return false;
             var weather = WeatherRegistry.GetFromCode(forecast.WeatherCode);
-            var text = $"{date:MM/dd} 天気予報({forecast.AreaName})\n" +
-                $"{weather.Mfm} {weather.Name}\n" +
+
+            var header = $"{date:MM/dd} 天気予報({forecast.AreaName})";
+            var text = $"{weather.Mfm} {weather.Name}\n" +
                 $"降水確率: {string.Join("→", forecast.Pops)} %\n" +
                 $"気温: ↓{forecast.MinTemperature} ↑{forecast.MaxTemperature} ℃";
+            text = EnvVar.RegexReplace.Aggregate(text, (a, b) => b.pattern.Replace(a, b.replacement));
 
-            var note = new PostNote(text, EnvVar.ForecastVisibility);
+            var note = new PostNote($"{header}\n{text}", EnvVar.ForecastVisibility);
 
             var maxChanceFile = EnvVar.MaxChanceFile;
             if (forecast.MaxTemperature > EnvVar.MaxChanceThreshold && maxChanceFile != null)
@@ -139,11 +134,12 @@ namespace TajimiNow
             var minAmedas = amedas.MinBy(e => e.Temperature);
             if (maxAmedas == null || minAmedas == null) return false;
 
-            var text = $"昨日({date:MM/dd})の気温({maxAmedas.Point.Name})\n" +
-                $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
+            var header = $"昨日({date:MM/dd})の気温({maxAmedas.Point.Name})";
+            var text = $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
                 $"最低: {minAmedas.Temperature} ℃ ({minAmedas.Time:HH:mm})";
+            text = EnvVar.RegexReplace.Aggregate(text, (a, b) => b.pattern.Replace(a, b.replacement));
 
-            var note = new PostNote(text, EnvVar.MinMaxTempVisibility);
+            var note = new PostNote($"{header}\n{text}", EnvVar.MinMaxTempVisibility);
 
             var maxAchievedFile = EnvVar.MaxAchievedFile;
             if (maxAmedas.Temperature > EnvVar.MaxChanceThreshold && maxAchievedFile != null)
