@@ -72,7 +72,7 @@ namespace TajimiNow.Jma.Amedas
             }
         }
 
-        private Amedas(Point point, DateTime time, double temperature, double precipitation1h, double sunshineHours, double windSpeed)
+        private Amedas(Point point, DateTime time, double? temperature, double? precipitation1h, double? sunshineHours, double? windSpeed)
         {
             Point = point;
             Time = time;
@@ -84,16 +84,16 @@ namespace TajimiNow.Jma.Amedas
 
         public Point Point { get; }
         public DateTime Time { get; }
-        public double Temperature { get; }
-        public double Precipitation1h { get; }
-        public double SunshineHours { get; }
-        public double WindSpeed { get; }
+        public double? Temperature { get; }
+        public double? Precipitation1h { get; }
+        public double? SunshineHours { get; }
+        public double? WindSpeed { get; }
 
         private record RawData(
-            IReadOnlyList<double> Temp,
-            IReadOnlyList<double> Sun1h,
-            IReadOnlyList<double> Precipitation1h,
-            IReadOnlyList<double> Wind
+            IReadOnlyList<double?> Temp,
+            IReadOnlyList<double?> Sun1h,
+            IReadOnlyList<double?> Precipitation1h,
+            IReadOnlyList<double?> Wind
         );
     }
 }
