@@ -17,7 +17,10 @@ namespace TajimiNow.Jma.Amedas
         public static async Task<Point?> GetPointFromCode(string code)
         {
             if (points.ContainsKey(code)) return points[code];
-            await Update();
+
+            try { await Update(); }
+            catch { return null; }
+
             if (points.ContainsKey(code)) return points[code];
             return null;
         }
