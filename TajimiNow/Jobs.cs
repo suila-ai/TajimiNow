@@ -41,8 +41,8 @@ namespace TajimiNow
 
                     if (amedas != null)
                     {
-                        var text = $"🌡 {amedas.Temperature} ℃ 💨 {amedas.WindSpeed} m/s\n" +
-                            $"☀ {amedas.SunshineHours} min/h  🌧 {amedas.Precipitation1h} mm/h\n" +
+                        var text = $"{ValueFormat("🌡", amedas.Temperature, "℃")} {ValueFormat("💨", amedas.WindSpeed, "m/s")}\n" +
+                            $"{ValueFormat("☀", amedas.SunshineHours, "min/h")} {ValueFormat("🌧", amedas.Precipitation1h, "mm/h")}\n" +
                             $"({amedas.Point.Name} {amedas.Time:HH:mm})";
                         try
                         {
@@ -59,6 +59,12 @@ namespace TajimiNow
 
                 await Task.Delay(TimeSpan.FromSeconds(60));
             }
+        }
+
+        private static string ValueFormat<T>(string header, T? value, string unit)
+        {
+            if (value == null) return $"{header} 休止中";
+            return $"{header} {value} {unit}";
         }
 
         public static async Task RunDaily()
@@ -137,7 +143,7 @@ namespace TajimiNow
             var amedas = await Amedas.GetDay(pointCode, date).ToArrayAsync();
             var maxAmedas = amedas.MaxBy(e => e.Temperature);
             var minAmedas = amedas.MinBy(e => e.Temperature);
-            if (maxAmedas == null || minAmedas == null) return false;
+            if (maxAmedas?.Temperature == null || minAmedas?.Temperature == null) return false;
 
             var text = $"昨日({date:MM/dd})の気温({maxAmedas.Point.Name})\n" +
                 $"最高: {maxAmedas.Temperature} ℃ ({maxAmedas.Time:HH:mm})\n" +
