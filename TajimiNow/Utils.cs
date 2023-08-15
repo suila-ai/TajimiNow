@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,5 +23,7 @@ namespace TajimiNow
         {
             return await source.AggregateAsync((a, b) => keySelector(a).CompareTo(keySelector(b)) >= 0 ? a : b, cancellationToken);
         }
+
+        public static string ToHex(this Color color) => (color.ToArgb() & 0xffffff).ToString("x6");
     }
 }

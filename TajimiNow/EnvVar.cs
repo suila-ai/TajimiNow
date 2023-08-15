@@ -16,6 +16,7 @@ namespace TajimiNow
         public static string? AmedasPointCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_AMEDAS_POINT_CODE");
         public static string? ForecastOfficeCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_OFFICE_CODE");
         public static string? ForecastAreaCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_AREA_CODE");
+        public static string? WarningAreaCode { get; } = Environment.GetEnvironmentVariable("MISSKEY_WARNING_AREA_CODE");
 
         public static string AmedasVisibility { get; } = Environment.GetEnvironmentVariable("MISSKEY_AMEDAS_VISIBILITY") ?? "specified";
         public static string ForecastVisibility { get; } = Environment.GetEnvironmentVariable("MISSKEY_FORECAST_VISIBILITY") ?? "specified";

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TajimiNow.Jma;
 using TajimiNow.Jma.Amedas;
+using TajimiNow.Jma.Warning;
 using TajimiNow.Jma.Weather;
 using TajimiNow.Misskey;
 using TajimiNow.Misskey.Models;
@@ -34,6 +36,20 @@ namespace TajimiNow
                     {
                         var text = $"{ValueFormat("🌡", amedas.Temperature, "℃")} {ValueFormat("💨", amedas.WindSpeed, "m/s")}\n" +
                             $"{ValueFormat("☀", amedas.SunshineHours, "min/h")} {ValueFormat("🌧", amedas.Precipitation1h, "mm/h")}";
+
+                        if (EnvVar.ForecastOfficeCode != null && EnvVar.WarningAreaCode != null)
+                        {
+                            var warnings = await Warnings.Get(EnvVar.ForecastOfficeCode, EnvVar.WarningAreaCode);
+                            if (warnings != null)
+                            {
+                                var warningsText = string.Join(" ", Enumerable.Concat(warnings.New, warnings.Continue)
+                                    .OrderBy(e => e)
+                                    .GroupBy(e => e.Level)
+                                    .Select(e => $"$[bg.color={e.Key.BackgroundColor.ToHex()} $[fg.color={e.Key.ForegroundColor.ToHex()} {string.Join("・", e.Select(e => e.Type))}{e.Key.Name}]]"));
+                                text += "\n" + warningsText;
+                            }
+                        }
+
                         text = EnvVar.RegexReplace.Aggregate(text, (a, b) => b.pattern.Replace(a, b.replacement));
                         var footer = $"({amedas.Point.Name} {amedas.Time:HH:mm})";
 
