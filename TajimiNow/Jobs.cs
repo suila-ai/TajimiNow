@@ -46,7 +46,7 @@ namespace TajimiNow
                                     .OrderBy(e => e)
                                     .GroupBy(e => e.Level)
                                     .Select(e => $"$[bg.color={e.Key.BackgroundColor.ToHex()} $[fg.color={e.Key.ForegroundColor.ToHex()} {string.Join("・", e.Select(e => e.Type))}{e.Key.Name}]]"));
-                                text += "\n" + warningsText;
+                                if (warningsText.Length > 0) text += "\n" + warningsText;
                             }
                         }
 
