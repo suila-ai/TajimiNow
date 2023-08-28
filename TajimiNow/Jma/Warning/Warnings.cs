@@ -28,12 +28,16 @@ namespace TajimiNow.Jma.Warning
             var warnings = rawData.AreaTypes[1].Areas.FirstOrDefault(e => e.Code == areaCode)?.Warnings;
             if (warnings == null) return null;
 
-            return new(
+            var activeWarnings = warnings.Where(e => e.Code != null).ToList();
+
+            var result = new Warnings(
                 rawData.ReportDatetime,
-                warnings.Where(e => e.Status != "継続" && e.Status != "解除").Select(e => Warning.GetFromCode(e.Code)).ToList(),
-                warnings.Where(e => e.Status == "継続").Select(e => Warning.GetFromCode(e.Code)).ToList(),
-                warnings.Where(e => e.Status == "解除").Select(e => Warning.GetFromCode(e.Code)).ToList()
+                activeWarnings.Where(e => e.Status != "継続" && e.Status != "解除").Select(e => Warning.GetFromCode(e.Code!)).ToList(),
+                activeWarnings.Where(e => e.Status == "継続").Select(e => Warning.GetFromCode(e.Code!)).ToList(),
+                activeWarnings.Where(e => e.Status == "解除").Select(e => Warning.GetFromCode(e.Code!)).ToList()
             );
+
+            return result;
         }
 
         public DateTime Time { get; }
@@ -65,7 +69,7 @@ namespace TajimiNow.Jma.Warning
         );
 
         private record RawWarning(
-            string Code,
+            string? Code,
             string Status
         );
     }
