@@ -38,7 +38,7 @@ namespace TajimiNow.Jma.Amedas
             var floorTime = DateTime.ParseExact(timeKey, "yyyyMMddHHmmss", null);
             var data = rawData[timeKey];
 
-            return new(point, floorTime, data.Temp[0], data.Precipitation1h[0], 60 * data.Sun1h[0], data.Wind[0]);
+            return new(point, floorTime, data?.Temp?[0], data?.Precipitation1h?[0], 60 * data?.Sun1h?[0], data?.Wind?[0]);
         }
 
         public static async IAsyncEnumerable<Amedas> GetDay(string pointCode, DateOnly date)
@@ -66,7 +66,7 @@ namespace TajimiNow.Jma.Amedas
                     foreach (var (timeKey, data) in rawData)
                     {
                         var time = DateTime.ParseExact(timeKey, "yyyyMMddHHmmss", null);
-                        yield return new(point, time, data.Temp[0], data.Precipitation1h[0], 60 * data.Sun1h[0], data.Wind[0]);
+                        yield return new(point, time, data?.Temp?[0], data?.Precipitation1h?[0], 60 * data?.Sun1h?[0], data?.Wind?[0]);
                     }
                 }
             }
@@ -90,10 +90,10 @@ namespace TajimiNow.Jma.Amedas
         public double? WindSpeed { get; }
 
         private record RawData(
-            IReadOnlyList<double?> Temp,
-            IReadOnlyList<double?> Sun1h,
-            IReadOnlyList<double?> Precipitation1h,
-            IReadOnlyList<double?> Wind
+            IReadOnlyList<double?>? Temp,
+            IReadOnlyList<double?>? Sun1h,
+            IReadOnlyList<double?>? Precipitation1h,
+            IReadOnlyList<double?>? Wind
         );
     }
 }
